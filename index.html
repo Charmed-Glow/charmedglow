@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charmed Glow</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #fff9f5;
+    color: #3d2b25;
+}
+
+header {
+    background: #5c4036;
+    color: white;
+    padding: 20px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+button {
+    border: none;
+    border-radius: 10px;
+    padding: 11px 16px;
+    background: #7d5547;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    opacity: .9;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px 18px;
+}
+
+.hero {
+    text-align: center;
+    padding: 35px 10px;
+}
+
+.hero h1 {
+    font-size: 42px;
+    margin-bottom: 8px;
+}
+
+.hero p {
+    color: #806b62;
+}
+
+.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #eadbd4;
+    box-shadow: 0 5px 15px rgba(80,50,40,.07);
+}
+
+.candle {
+    height: 160px;
+    border-radius: 12px;
+    background: linear-gradient(135deg,#f0dfd3,#fff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 60px;
+}
+
+.price {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.stock {
+    font-size: 13px;
+    color: #806b62;
+    margin-bottom: 15px;
+}
+
+.panel {
+    background: white;
+    padding: 22px;
+    border-radius: 16px;
+    border: 1px solid #eadbd4;
+    margin-top: 20px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #dbcac2;
+    border-radius: 9px;
+    margin: 6px 0 12px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.total {
+    text-align: right;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 18px 0;
+}
+
+.section {
+    margin-top: 35px;
+}
+
+.hidden {
+    display: none;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tabs button.active {
+    background: #3d2b25;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.badge {
+    padding: 5px 9px;
+    border-radius: 20px;
+    background: #f1dfd7;
+    font-size: 12px;
+}
+
+footer {
+    text-align: center;
+    padding: 40px;
+    color: #806b62;
+}
+
+@media(max-width:600px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero h1 {
+        font-size: 32px;
+    }
+
+    header {
+        padding: 18px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <div class="logo">✨ Charmed Glow</div>
+        <small>Beautiful scents for your space</small>
+    </div>
+
+    <button onclick="toggleDashboard()">
+        Admin Dashboard
+    </button>
+</header>
+
+<div class="container">
+
+<section class="hero">
+    <h1>Charmed Glow 🕯️</h1>
+    <p>Cozy candles made to make your space feel special.</p>
+</section>
+
+<section>
+    <div class="products" id="products"></div>
+</section>
+
+<section class="section">
+    <div class="panel">
+        <h2>🛒 Your Cart</h2>
+        <div id="cart"></div>
+        <div id="checkout"></div>
+    </div>
+</section>
+
+<section id="dashboard" class="section hidden">
+
+    <div class="panel">
+
+        <div class="tabs">
+            <button class="active"
+                onclick="showTab('orders',this)">
+                Orders
+            </button>
+
+            <button onclick="showTab('inventory',this)">
+                Inventory
+            </button>
+
+            <button onclick="showTab('sales',this)">
+                Sales
+            </button>
+        </div>
+
+        <div id="ordersTab"></div>
+
+        <div id="inventoryTab" class="hidden"></div>
+
+        <div id="salesTab" class="hidden"></div>
+
+    </div>
+
+</section>
+
+</div>
+
+<footer>
+    Charmed Glow<br>
+    Delivery through JRS or J&T<br>
+    Cash • GCash • Bank Transfer
+</footer>
+
+
+<script>
+
+const STORAGE_KEY = "charmedGlow";
+
+let data = JSON.parse(
+    localStorage.getItem(STORAGE_KEY)
+);
+
+if (!data) {
+
+    data = {
+
+        products: [
+
+            {
+                id: 1,
+                name: "Coffee Candle",
+                price: 480,
+                stock: 20
+            },
+
+            {
+                id: 2,
+                name: "Vanilla Candle",
+                price: 480,
+                stock: 20
+            }
+
+        ],
+
+        orders: []
+
+    };
+
+    save();
+
+}
+
+let cart = [];
+
+
+function save() {
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(data)
+    );
+
+}
+
+
+function money(amount) {
+
+    return "₱" +
+        Number(amount).toLocaleString(
+            "en-PH",
+            {
+                minimumFractionDigits: 2
+            }
+        );
+
+}
+
+
+/* PRODUCTS */
+
+function renderProducts() {
+
+    const container =
+        document.getElementById("products");
+
+    container.innerHTML =
+        data.products.map(product => {
+
+            const emoji =
+                product.name.includes("Coffee")
+                ? "☕"
+                : "🍦";
+
+            return `
+
+            <div class="card">
+
+                <div class="candle">
+                    ${emoji}
+                </div>
+
+                <h3>${product.name}</h3>
+
+                <div class="price">
+                    ${money(product.price)}
+                </div>
+
+                <div class="stock">
+                    ${product.stock} available
+                </div>
+
+                <button
+                    ${product.stock <= 0 ? "disabled" : ""}
+                    onclick="addToCart(${product.id})">
+
+                    ${
+                        product.stock > 0
+                        ? "Add to Cart"
+                        : "Out of Stock"
+                    }
+
+                </button>
+
+            </div>
+
+            `;
+
+        }).join("");
+
+}
+
+
+/* CART */
+
+function addToCart(id) {
+
+    const product =
+        data.products.find(
+            p => p.id === id
+        );
+
+    const existing =
+        cart.find(
+            item => item.id === id
+        );
+
+    if (existing) {
+
+        if (existing.qty < product.stock) {
+            existing.qty++;
+        }
+
+    } else {
+
+        cart.push({
+            id: id,
+            qty: 1
+        });
+
+    }
+
+    renderCart();
+
+}
+
+
+function changeQuantity(id, amount) {
+
+    const item =
+        cart.find(
+            x => x.id === id
+        );
+
+    const product =
+        data.products.find(
+            x => x.id === id
+        );
+
+    if (!item) return;
+
+    item.qty += amount;
+
+    if (item.qty <= 0) {
+
+        cart =
+            cart.filter(
+                x => x.id !== id
+            );
+
+    }
+
+    if (item.qty > product.stock) {
+        item.qty = product.stock;
+    }
+
+    renderCart();
+
+}
+
+
+function renderCart() {
+
+    const cartElement =
+        document.getElementById("cart");
+
+    const checkout =
+        document.getElementById("checkout");
+
+    if (cart.length === 0) {
+
+        cartElement.innerHTML =
+            "<p>Your cart is empty.</p>";
+
+        checkout.innerHTML = "";
+
+        return;
+
+    }
+
+    let total = 0;
+
+    cartElement.innerHTML =
+        cart.map(item => {
+
+            const product =
+                data.products.find(
+                    p => p.id === item.id
+                );
+
+            const subtotal =
+                product.price * item.qty;
+
+            total += subtotal;
+
+            return `
+
+            <div class="cart-item">
+
+                <span>
+                    <strong>${product.name}</strong><br>
+
+                    ${money(product.price)}
+                    × ${item.qty}
+
+                </span>
+
+                <span>
+
+                    <button
+                        onclick="changeQuantity(${product.id},-1)">
+                        −
+                    </button>
+
+                    <button
+                        onclick="changeQuantity(${product.id},1)">
+                        +
+                    </button>
+
+                </span>
+
+            </div>
+
+            `;
+
+        }).join("");
+
+
+    checkout.innerHTML = `
+
+        <div class="total">
+            Total: ${money(total)}
+        </div>
+
+        <h3>Customer Details</h3>
+
+        <div class="grid">
+
+            <div>
+                <label>Full Name</label>
+                <input
+                    id="customerName"
+                    placeholder="Your name">
+            </div>
+
+            <div>
+                <label>Mobile Number</label>
+                <input
+                    id="customerPhone"
+                    placeholder="09XX XXX XXXX">
+            </div>
+
+        </div>
+
+        <label>Delivery Address</label>
+
+        <textarea
+            id="customerAddress"
+            rows="3"
+            placeholder="Complete delivery address">
+        </textarea>
+
+
+        <div class="grid">
+
+            <div>
+
+                <label>Courier</label>
+
+                <select id="courier">
+
+                    <option>JRS</option>
+                    <option>J&T</option>
+
+                </select>
+
+            </div>
+
+
+            <div>
+
+                <label>Payment Method</label>
+
+                <select id="payment">
+
+                    <option>Cash</option>
+                    <option>GCash</option>
+                    <option>Bank Transfer</option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <button onclick="placeOrder()">
+            Place Order
+        </button>
+
+    `;
+
+}
+
+
+/* PLACE ORDER */
+
+function placeOrder() {
+
+    const name =
+        document.getElementById(
+            "customerName"
+        ).value.trim();
+
+    const phone =
+        document.getElementById(
+            "customerPhone"
+        ).value.trim();
+
+    const address =
+        document.getElementById(
+            "customerAddress"
+        ).value.trim();
+
+    const courier =
+        document.getElementById(
+            "courier"
+        ).value;
+
+    const payment =
+        document.getElementById(
+            "payment"
+        ).value;
+
+
+    if (!name || !phone || !address) {
+
+        alert(
+            "Please complete your customer details."
+        );
+
+        return;
+
+    }
+
+
+    let total = 0;
+
+    let items = [];
+
+
+    for (const cartItem of cart) {
+
+        const product =
+            data.products.find(
+                p => p.id === cartItem.id
+            );
+
+        if (cartItem.qty > product.stock) {
+
+            alert(
+                "Not enough stock for " +
+                product.name
+            );
+
+            return;
+
+        }
+
+        product.stock -= cartItem.qty;
+
+        total +=
+            product.price *
+            cartItem.qty;
+
+        items.push({
+
+            name: product.name,
+
+            qty: cartItem.qty,
+
+            price: product.price
+
+        });
+
+    }
+
+
+    const order = {
+
+        id:
+            "CG" +
+            Date.now()
+            .toString()
+            .slice(-6),
+
+        date:
+            new Date()
+            .toLocaleString(),
+
+        customer: name,
+
+        phone: phone,
+
+        address: address,
+
+        courier: courier,
+
+        payment: payment,
+
+        items: items,
+
+        total: total,
+
+        status: "New"
+
+    };
+
+
+    data.orders.unshift(order);
+
+    save();
+
+    cart = [];
+
+    renderProducts();
+
+    renderCart();
+
+    renderDashboard();
+
+
+    alert(
+        "Order received!\n\n" +
+        "Order Number: " +
+        order.id
+    );
+
+}
+
+
+/* DASHBOARD */
+
+function toggleDashboard() {
+
+    const dashboard =
+        document.getElementById(
+            "dashboard"
+        );
+
+    dashboard.classList.toggle(
+        "hidden"
+    );
+
+    renderDashboard();
+
+}
+
+
+function showTab(tab, button) {
+
+    document
+        .getElementById("ordersTab")
+        .classList.add("hidden");
+
+    document
+        .getElementById("inventoryTab")
+        .classList.add("hidden");
+
+    document
+        .getElementById("salesTab")
+        .classList.add("hidden");
+
+
+    document
+        .getElementById(
+            tab + "Tab"
+        )
+        .classList.remove("hidden");
+
+
+    document
+        .querySelectorAll(".tabs button")
+        .forEach(
+            b => b.classList.remove("active")
+        );
+
+    button.classList.add("active");
+
+}
+
+
+function renderDashboard() {
+
+    renderOrders();
+
+    renderInventory();
+
+    renderSales();
+
+}
+
+
+/* ORDERS */
+
+function renderOrders() {
+
+    const element =
+        document.getElementById(
+            "ordersTab"
+        );
+
+
+    if (data.orders.length === 0) {
+
+        element.innerHTML =
+            "<h2>Orders</h2><p>No orders yet.</p>";
+
+        return;
+
+    }
+
+
+    element.innerHTML =
+
+        "<h2>Orders</h2>" +
+
+        data.orders.map(order => `
+
+        <div class="panel">
+
+            <div>
+                <strong>
+                    ${order.id}
+                </strong>
+
+                <span class="badge">
+                    ${order.status}
+                </span>
+            </div>
+
+            <p>
+
+                <strong>
+                    ${order.customer}
+                </strong><br>
+
+                ${order.phone}<br>
+
+                ${order.address}
+
+            </p>
+
+            <p>
+
+                Courier:
+                <strong>${order.courier}</strong><br>
+
+                Payment:
+                <strong>${order.payment}</strong>
+
+            </p>
+
+            <p>
+
+                ${order.items
+                    .map(
+                        item =>
+                        ${item.name} × ${item.qty}
+                    )
+                    .join("<br>")
+                }
+
+            </p>
+
+            <strong>
+                Total: ${money(order.total)}
+            </strong>
+
+            <br><br>
+
+            <select
+                onchange="updateOrderStatus(
+                    '${order.id}',
+                    this.value
+                )">
+
+                <option ${
+                    order.status === "New"
+                    ? "selected"
+                    : ""
+                }>
+                    New
+                </option>
+
+                <option ${
+                    order.status === "Processing"
+                    ? "selected"
+                    : ""
+                }>
+                    Processing
+                </option>
+
+                <option ${
+                    order.status === "Shipped"
+                    ? "selected"
+                    : ""
+                }>
+                    Shipped
+                </option>
+
+                <option ${
+                    order.status === "Completed"
+                    ? "selected"
+                    : ""
+                }>
+                    Completed
+                </option>
+
+                <option ${
+                    order.status === "Cancelled"
+                    ? "selected"
+                    : ""
+                }>
+                    Cancelled
+                </option>
+
+            </select>
+
+        </div>
+
+        `).join("");
+
+}
+
+
+function updateOrderStatus(id, status) {
+
+    const order =
+        data.orders.find(
+            o => o.id === id
+        );
+
+    order.status = status;
+
+    save();
+
+    renderDashboard();
+
+}
+
+
+/* INVENTORY */
+
+function renderInventory() {
+
+    const element =
+        document.getElementById(
+            "inventoryTab"
+        );
+
+
+    element.innerHTML = `
+
+        <h2>Inventory</h2>
+
+        <table>
+
+            <tr>
+
+                <th>Product</th>
+                <th>Price</th>
+                <th>Stock</th>
+
+            </tr>
+
+            ${data.products.map(product => `
+
+                <tr>
+
+                    <td>
+                        ${product.name}
+                    </td>
+
+                    <td>
+
+                        <input
+                            type="number"
+                            value="${product.price}"
+                            onchange="
+                                updateProduct(
+                                    ${product.id},
+                                    'price',
+                                    this.value
+                                )
+                            ">
+
+                    </td>
+
+                    <td>
+
+                        <input
+                            type="number"
+                            value="${product.stock}"
+                            onchange="
+                                updateProduct(
+                                    ${product.id},
+                                    'stock',
+                                    this.value
+                                )
+                            ">
+
+                    </td>
+
+                </tr>
+
+            `).join("")}
+
+        </table>
+
+    `;
+
+}
+
+
+function updateProduct(id, field, value) {
+
+    const product =
+        data.products.find(
+            p => p.id === id
+        );
+
+    product[field] =
+        Number(value);
+
+    save();
+
+    renderProducts();
+
+    renderInventory();
+
+}
+
+
+/* SALES */
+
+function renderSales() {
+
+    const element =
+        document.getElementById(
+            "salesTab"
+        );
+
+
+    const validOrders =
+        data.orders.filter(
+            order =>
+                order.status !==
+                "Cancelled"
+        );
+
+
+    const totalSales =
+        validOrders.reduce(
+            (sum, order) =>
+                sum + order.total,
+            0
+        );
+
+
+    const unitsSold =
+        validOrders.reduce(
+            (sum, order) =>
+                sum +
+                order.items.reduce(
+                    (s, item) =>
+                        s + item.qty,
+                    0
+                ),
+            0
+        );
+
+
+    element.innerHTML = `
+
+        <h2>Sales Dashboard</h2>
+
+        <div class="grid">
+
+            <div class="panel">
+
+                <h2>
+                    ${money(totalSales)}
+                </h2>
+
+                <p>Total Sales</p>
+
+            </div>
+
+            <div class="panel">
+
+                <h2>
+                    ${unitsSold}
+                </h2>
+
+                <p>Units Sold</p>
+
+            </div>
+
+        </div>
+
+        <div class="panel">
+
+            <h3>Order Count</h3>
+
+            <p>
+                ${validOrders.length} orders
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+/* START */
+
+renderProducts();
+
+renderCart();
+
+renderDashboard();
+
+</script>
+
+</body>
+</html>
